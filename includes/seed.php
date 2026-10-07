@@ -79,3 +79,22 @@ function seed_content(): array {
 	}
 	return $made;
 }
+
+/**
+ * WooCommerce shop categories from the project file. Needs WooCommerce. Returns the number created.
+ */
+function ensure_shop_categories(): int {
+	if ( ! taxonomy_exists( 'product_cat' ) ) {
+		return 0;
+	}
+	$made = 0;
+	foreach ( array( 'club-kits' => 'Club Kits', 'rtea' => 'Ride to End ALZ® South Carolina', 'support' => 'Support' ) as $slug => $name ) {
+		if ( ! term_exists( $slug, 'product_cat' ) ) {
+			$result = wp_insert_term( $name, 'product_cat', array( 'slug' => $slug ) );
+			if ( ! is_wp_error( $result ) ) {
+				++$made;
+			}
+		}
+	}
+	return $made;
+}
