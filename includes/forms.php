@@ -1,6 +1,6 @@
 <?php
 /**
- * Gravity Forms the theme's patterns expect: id 1 = email signup, id 2 = contact.
+ * Gravity Forms the theme's patterns expect: id 1 = email signup (footer), id 2 = contact, id 3 = email signup (page band).
  * Defined in code so they can be recreated on staging and production:
  *   wp eval 'HopFly\Plugin\ensure_forms();'
  * Create them in a fresh install so the ids are 1 and 2 (the theme patterns use those ids).
@@ -147,5 +147,9 @@ function form_definitions(): array {
 		),
 	);
 
-	return array( 'Email signup' => $signup, 'Contact' => $contact );
+	// Same fields as the footer signup, as its own form, so a page can show both without duplicate ids.
+	$band          = $signup;
+	$band['title'] = 'Email signup (page band)';
+
+	return array( 'Email signup' => $signup, 'Contact' => $contact, 'Email signup (page band)' => $band );
 }
