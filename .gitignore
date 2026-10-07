@@ -1,0 +1,10 @@
+# macOS / editors
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Local scratch
+*.log
+*.bak
+node_modules/

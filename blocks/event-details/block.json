@@ -1,0 +1,13 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "hopfly/event-details",
+	"title": "Event Details",
+	"category": "widgets",
+	"icon": "location-alt",
+	"description": "Date, time, venue with map link, status and registration button for the current event.",
+	"textdomain": "hopfly",
+	"usesContext": [ "postId", "postType" ],
+	"supports": { "html": false },
+	"editorScript": "file:./edit.js"
+}

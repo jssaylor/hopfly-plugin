@@ -1,0 +1,19 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "hopfly/upcoming-events",
+	"title": "Upcoming Events",
+	"category": "widgets",
+	"icon": "calendar-alt",
+	"description": "Next events from the HopFly events list, including the next Saturday ride. Past events are hidden.",
+	"textdomain": "hopfly",
+	"attributes": {
+		"limit": { "type": "integer", "default": 0 },
+		"type": { "type": "string", "default": "" },
+		"grouped": { "type": "boolean", "default": false },
+		"photos": { "type": "boolean", "default": false },
+		"onGray": { "type": "boolean", "default": false }
+	},
+	"supports": { "html": false, "align": [ "wide", "full" ] },
+	"editorScript": "file:./edit.js"
+}

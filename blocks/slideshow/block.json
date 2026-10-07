@@ -1,0 +1,19 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "hopfly/slideshow",
+	"title": "HopFly Slideshow",
+	"category": "media",
+	"icon": "images-alt2",
+	"description": "Square photo slideshow: swipe and arrows, no autoplay, position indicator. Photos are cropped to fill; set a focal point on each photo.",
+	"keywords": [ "carousel", "gallery", "photos" ],
+	"textdomain": "hopfly",
+	"attributes": {
+		"label": { "type": "string", "default": "Photo slideshow" },
+		"dark": { "type": "boolean", "default": false }
+	},
+	"supports": { "html": false, "align": [ "wide", "full" ] },
+	"editorScript": "file:./edit.js",
+	"viewScript": "file:./view.js",
+	"style": "file:./style.css"
+}
