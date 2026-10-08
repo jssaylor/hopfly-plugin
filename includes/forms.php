@@ -90,8 +90,8 @@ function form_definitions(): array {
 					'id'            => 2,
 					'label'         => 'Consent',
 					'isRequired'    => true,
-					'checkboxLabel' => 'I agree to get emails from HopFly Cycling. Unsubscribe anytime.',
-					'description'   => 'I consent to email marketing from Over The Edge Cycling Club',
+					'checkboxLabel' => 'I consent to email marketing from Over The Edge Cycling Club.',
+					'description'   => 'Unsubscribe anytime.',
 					'errorMessage'  => 'Check the box to agree before subscribing.',
 				)
 			),
@@ -152,4 +152,34 @@ function form_definitions(): array {
 	$band['title'] = 'Email signup (page band)';
 
 	return array( 'Email signup' => $signup, 'Contact' => $contact, 'Email signup (page band)' => $band );
+}
+
+/**
+ * Bring the consent wording of existing signup forms in line with the definitions above.
+ * Only touches the consent field's label and helper line; entries and settings are untouched.
+ * Returns the number of forms updated.
+ */
+function sync_form_copy(): int {
+	if ( ! class_exists( 'GFAPI' ) ) {
+		return 0;
+	}
+	$want    = form_definitions()['Email signup']['fields'][1];
+	$updated = 0;
+	foreach ( \GFAPI::get_forms() as $form ) {
+		if ( ! in_array( $form['title'], array( 'Email signup', 'Email signup (page band)' ), true ) ) {
+			continue;
+		}
+		$changed = false;
+		foreach ( $form['fields'] as $field ) {
+			if ( 'consent' === $field->type && ( $field->checkboxLabel !== $want->checkboxLabel || $field->description !== $want->description ) ) {
+				$field->checkboxLabel = $want->checkboxLabel;
+				$field->description   = $want->description;
+				$changed              = true;
+			}
+		}
+		if ( $changed && ! is_wp_error( \GFAPI::update_form( $form ) ) ) {
+			++$updated;
+		}
+	}
+	return $updated;
 }

@@ -26,6 +26,7 @@ require_once __DIR__ . '/includes/events.php';
 require_once __DIR__ . '/includes/recurrence.php';
 require_once __DIR__ . '/includes/blocks.php';
 require_once __DIR__ . '/includes/woocommerce.php';
+require_once __DIR__ . '/includes/images.php';
 require_once __DIR__ . '/includes/forms.php';
 require_once __DIR__ . '/includes/seed.php';
 require_once __DIR__ . '/includes/setup-page.php';

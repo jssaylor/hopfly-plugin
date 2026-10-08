@@ -30,7 +30,8 @@ add_action(
 		}
 		$out += seed_content();
 		if ( class_exists( 'GFAPI' ) ) {
-			$out['forms'] = count( ensure_forms() );
+			$out['forms']        = count( ensure_forms() );
+			$out['forms updated'] = sync_form_copy();
 		}
 		$out['categories'] = ensure_shop_categories();
 		set_transient( 'hopfly_setup_result', $out, 60 );
