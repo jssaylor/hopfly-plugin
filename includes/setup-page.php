@@ -18,6 +18,19 @@ add_action(
 );
 
 add_action(
+	'admin_post_hopfly_examples',
+	static function () {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You do not have permission to do this.', 'hopfly' ) );
+		}
+		check_admin_referer( 'hopfly_examples' );
+		set_transient( 'hopfly_setup_result', array( 'example products' => seed_example_products() ), 60 );
+		wp_safe_redirect( admin_url( 'tools.php?page=hopfly-setup&done=1' ) );
+		exit;
+	}
+);
+
+add_action(
 	'admin_post_hopfly_setup',
 	static function () {
 		if ( ! current_user_can( 'manage_options' ) ) {
@@ -107,6 +120,14 @@ function render_setup_page(): void {
 			<input type="hidden" name="action" value="hopfly_setup">
 			<?php wp_nonce_field( 'hopfly_setup' ); ?>
 			<?php submit_button( __( 'Create anything that is missing', 'hopfly' ) ); ?>
+		</form>
+		<hr style="margin:28px 0;max-width:720px">
+		<h2><?php esc_html_e( 'Example products', 'hopfly' ); ?></h2>
+		<p style="max-width:720px"><?php esc_html_e( 'Adds three clearly named examples to the shop: a pre-order kit, a donation and a tip. They are there to look at and learn from. Delete them from Products whenever you like. Running this again never adds duplicates.', 'hopfly' ); ?></p>
+		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+			<input type="hidden" name="action" value="hopfly_examples">
+			<?php wp_nonce_field( 'hopfly_examples' ); ?>
+			<?php submit_button( __( 'Add example products', 'hopfly' ), 'secondary' ); ?>
 		</form>
 	</div>
 	<?php
