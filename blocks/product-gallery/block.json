@@ -1,0 +1,17 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "hopfly/product-gallery",
+	"title": "Product Gallery (Slideshow)",
+	"category": "widgets",
+	"icon": "images-alt2",
+	"description": "The current product's photos in the HopFly slideshow: square, cropped to fill, arrows and a position counter.",
+	"textdomain": "hopfly",
+	"usesContext": [
+		"postId"
+	],
+	"supports": {
+		"html": false
+	},
+	"editorScript": "file:./edit.js"
+}

@@ -29,7 +29,16 @@ Core Image blocks inside. Square crop, swipe (scroll-snap), arrows, keyboard arr
 Each image has a *Crop focus* control (focal point) so vertical photos keep heads in view. Give every image alt text.
 
 ## Shop
-Raises WooCommerce's variation AJAX threshold to 250 (kits have 196 variations).
+- Raises WooCommerce's variation AJAX threshold to 250 (kits have 196 variations).
+- **Pre-order products.** In a product's *General* tab: tick *HopFly pre-order*, set *Window closes*, *Ships in about (weeks)* and an optional *Size chart link*.
+  The product page then shows the Pre-order badge, the dark "Pre-order window" card and the final-sale line; the button reads "Pre-order".
+  After the window-close date the product can no longer be bought and the card says the window has closed.
+  Blocks: `hopfly/product-preorder` (part: badge, notice, final-sale, size-chart) and `hopfly/product-gallery` (the product's photos in the slideshow).
+- **Quantity stepper:** the product page's quantity box gets − and + buttons (plain number input without JavaScript).
+- **Crop focus:** each media-library photo has a *Crop focus* field (x,y in percent). The slideshow and product gallery keep that point in view when a photo is cropped to a square.
+
+## Images
+JPEG uploads are converted to WebP (quality 80); originals are capped at 2000px; full-width hero images declare `sizes="100vw"`.
 
 ## Gravity Forms
 `HopFly\Plugin\ensure_forms()` creates *Email signup* (id 1) and *Contact* (id 2) if missing. The theme's patterns use those ids.

@@ -1,0 +1,14 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "hopfly/product-preorder",
+	"title": "Product Pre-order Details",
+	"category": "widgets",
+	"icon": "clock",
+	"description": "Pre-order badge, order window card, final-sale line or size chart link for the current product. Shows only on pre-order products. Edit the dates in the product's General tab.",
+	"textdomain": "hopfly",
+	"attributes": { "part": { "type": "string", "default": "notice" } },
+	"usesContext": [ "postId" ],
+	"supports": { "html": false },
+	"editorScript": "file:./edit.js"
+}

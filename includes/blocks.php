@@ -15,6 +15,8 @@ add_action(
 		register_block_type( HOPFLY_PLUGIN_DIR . 'blocks/upcoming-events', array( 'render_callback' => __NAMESPACE__ . '\render_upcoming_events' ) );
 		register_block_type( HOPFLY_PLUGIN_DIR . 'blocks/event-details', array( 'render_callback' => __NAMESPACE__ . '\render_event_details' ) );
 		register_block_type( HOPFLY_PLUGIN_DIR . 'blocks/slideshow', array( 'render_callback' => __NAMESPACE__ . '\render_slideshow' ) );
+		register_block_type( HOPFLY_PLUGIN_DIR . 'blocks/product-preorder', array( 'render_callback' => __NAMESPACE__ . '\render_product_preorder' ) );
+		register_block_type( HOPFLY_PLUGIN_DIR . 'blocks/product-gallery', array( 'render_callback' => __NAMESPACE__ . '\render_product_gallery' ) );
 	}
 );
 
@@ -195,34 +197,29 @@ function render_event_details( array $attrs, string $content, \WP_Block $block )
 }
 
 /**
- * Slideshow block: wraps the inner Image blocks in a swipeable, no-autoplay carousel.
+ * Slideshow markup from ready-made slide HTML (used by the Slideshow block and the product gallery).
+ *
+ * @param string[] $slides Slide HTML (usually a figure with an image).
+ * @param string   $label  Accessible name for the carousel.
+ * @param bool     $dark   Dark-ground styling.
+ * @param string   $wrapper_attrs Extra wrapper attributes from get_block_wrapper_attributes().
  */
-function render_slideshow( array $attrs, string $content, \WP_Block $block ): string {
-	$slides = array();
-	foreach ( $block->inner_blocks as $inner ) {
-		$html = trim( $inner->render() );
-		if ( '' !== $html ) {
-			$slides[] = $html;
-		}
-	}
-	if ( ! $slides ) {
+function slideshow_markup( array $slides, string $label, bool $dark = false, string $wrapper_attrs = '' ): string {
+	$total = count( $slides );
+	if ( ! $total ) {
 		return '';
 	}
-	$total = count( $slides );
-	$label = $attrs['label'] ?? __( 'Photo slideshow', 'hopfly' );
 	$pad   = static fn( int $n ): string => str_pad( (string) $n, 2, '0', STR_PAD_LEFT );
 	$arrow = static fn( string $dir ): string => '<svg width="10" height="16" viewBox="0 0 10 16" aria-hidden="true" focusable="false"><polyline points="' . ( 'prev' === $dir ? '8,2 2,8 8,14' : '2,2 8,8 2,14' ) . '" fill="none" stroke="currentColor" stroke-width="2"/></svg>';
 
-	$wrapper = get_block_wrapper_attributes(
-		array(
-			'class'                 => 'hopfly-slideshow' . ( ! empty( $attrs['dark'] ) ? ' is-dark' : '' ),
-			'role'                  => 'region',
-			'aria-roledescription'  => 'carousel',
-			'aria-label'            => $label,
-			'data-hopfly-slideshow' => '',
-		)
-	);
-	$html  = '<div ' . $wrapper . '>';
+	if ( '' === $wrapper_attrs ) {
+		$wrapper_attrs = sprintf(
+			'class="hopfly-slideshow%s" role="region" aria-roledescription="carousel" aria-label="%s" data-hopfly-slideshow',
+			$dark ? ' is-dark' : '',
+			esc_attr( $label )
+		);
+	}
+	$html  = '<div ' . $wrapper_attrs . '>';
 	$html .= '<div class="hopfly-slideshow__viewport"><div class="hopfly-slideshow__track" tabindex="0">';
 	foreach ( $slides as $i => $slide ) {
 		/* translators: 1: slide number, 2: total slides. */
@@ -239,6 +236,29 @@ function render_slideshow( array $attrs, string $content, \WP_Block $block ): st
 		$html .= '<div class="hopfly-slideshow__bar" aria-hidden="true"><div class="hopfly-slideshow__fill" style="width:' . esc_attr( (string) round( 100 / $total, 2 ) ) . '%"></div></div></div>';
 	}
 	return $html . '</div>';
+}
+
+/**
+ * Slideshow block: wraps the inner Image blocks in a swipeable, no-autoplay carousel.
+ */
+function render_slideshow( array $attrs, string $content, \WP_Block $block ): string {
+	$slides = array();
+	foreach ( $block->inner_blocks as $inner ) {
+		$html = trim( $inner->render() );
+		if ( '' !== $html ) {
+			$slides[] = $html;
+		}
+	}
+	$wrapper = get_block_wrapper_attributes(
+		array(
+			'class'                 => 'hopfly-slideshow' . ( ! empty( $attrs['dark'] ) ? ' is-dark' : '' ),
+			'role'                  => 'region',
+			'aria-roledescription'  => 'carousel',
+			'aria-label'            => $attrs['label'] ?? __( 'Photo slideshow', 'hopfly' ),
+			'data-hopfly-slideshow' => '',
+		)
+	);
+	return slideshow_markup( $slides, (string) ( $attrs['label'] ?? '' ), ! empty( $attrs['dark'] ), $wrapper );
 }
 
 /**
@@ -260,6 +280,9 @@ add_filter(
 	'render_block_core/image',
 	static function ( string $content, array $block ): string {
 		$focal = $block['attrs']['hopflyFocal'] ?? null;
+		if ( ! is_array( $focal ) && ! empty( $block['attrs']['id'] ) ) {
+			$focal = attachment_focal( (int) $block['attrs']['id'] );
+		}
 		if ( ! is_array( $focal ) || ! isset( $focal['x'], $focal['y'] ) || '' === $content ) {
 			return $content;
 		}
