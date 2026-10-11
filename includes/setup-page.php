@@ -1,7 +1,6 @@
 <?php
 /**
- * Tools > HopFly Setup: one button creates the starter pages, teams, sponsors, events, forms and shop
- * categories. Safe to run more than once: it only adds what is missing and never overwrites anything.
+ * Tools > HopFly Setup: one button creates the starter pages, teams, sponsors, events, and forms. Safe to run more than once: it only adds what is missing and never overwrites anything.
  *
  * @package hopfly
  */
@@ -18,14 +17,17 @@ add_action(
 );
 
 add_action(
-	'admin_post_hopfly_examples',
+	'admin_post_hopfly_store_url',
 	static function () {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_die( esc_html__( 'You do not have permission to do this.', 'hopfly' ) );
 		}
-		check_admin_referer( 'hopfly_examples' );
-		set_transient( 'hopfly_setup_result', array( 'example products' => seed_example_products() ), 60 );
-		wp_safe_redirect( admin_url( 'tools.php?page=hopfly-setup&done=1' ) );
+		check_admin_referer( 'hopfly_store_url' );
+		$url = esc_url_raw( wp_unslash( $_POST['hopfly_store_url'] ?? '' ) ); // phpcs:ignore WordPress.Security.NonceVerification
+		if ( $url ) {
+			update_option( 'hopfly_store_url', untrailingslashit( $url ) );
+		}
+		wp_safe_redirect( admin_url( 'tools.php?page=hopfly-setup' ) );
 		exit;
 	}
 );
@@ -46,7 +48,6 @@ add_action(
 			$out['forms']        = count( ensure_forms() );
 			$out['forms updated'] = sync_form_copy();
 		}
-		$out['categories'] = ensure_shop_categories();
 		set_transient( 'hopfly_setup_result', $out, 60 );
 		wp_safe_redirect( admin_url( 'tools.php?page=hopfly-setup&done=1' ) );
 		exit;
@@ -84,12 +85,7 @@ function setup_status(): array {
 	} else {
 		$rows[] = array( __( 'Gravity Forms', 'hopfly' ), false, __( 'Install and activate Gravity Forms', 'hopfly' ) );
 	}
-	if ( taxonomy_exists( 'product_cat' ) ) {
-		$have   = count( array_filter( array( 'club-kits', 'rtea', 'support' ), static fn( $s ) => term_exists( $s, 'product_cat' ) ) );
-		$rows[] = array( __( 'Shop categories', 'hopfly' ), 3 === $have, $have . ' / 3' );
-	} else {
-		$rows[] = array( __( 'Shop categories', 'hopfly' ), false, __( 'Install and activate WooCommerce', 'hopfly' ) );
-	}
+	$rows[] = array( __( 'Store URL', 'hopfly' ), true, store_url() );
 	return $rows;
 }
 
@@ -101,7 +97,7 @@ function render_setup_page(): void {
 	?>
 	<div class="wrap">
 		<h1><?php esc_html_e( 'HopFly Setup', 'hopfly' ); ?></h1>
-		<p><?php esc_html_e( 'Creates the starter pages, sponsor teams and names, events, forms and shop categories. It only adds what is missing and never overwrites or deletes anything.', 'hopfly' ); ?></p>
+		<p><?php esc_html_e( 'Creates the starter pages, sponsor teams and names, events and forms. It only adds what is missing and never overwrites or deletes anything.', 'hopfly' ); ?></p>
 		<?php if ( is_array( $result ) ) : ?>
 			<div class="notice notice-success"><p><?php echo esc_html( 'Done. Created: ' . implode( ', ', array_map( static fn( $k, $v ) => "$k: $v", array_keys( $result ), $result ) ) ); ?></p></div>
 		<?php endif; ?>
@@ -122,12 +118,13 @@ function render_setup_page(): void {
 			<?php submit_button( __( 'Create anything that is missing', 'hopfly' ) ); ?>
 		</form>
 		<hr style="margin:28px 0;max-width:720px">
-		<h2><?php esc_html_e( 'Example products', 'hopfly' ); ?></h2>
-		<p style="max-width:720px"><?php esc_html_e( 'Adds three clearly named examples to the shop: a pre-order kit, a donation and a tip. They are there to look at and learn from. Delete them from Products whenever you like. Running this again never adds duplicates.', 'hopfly' ); ?></p>
+		<h2><?php esc_html_e( 'Store URL', 'hopfly' ); ?></h2>
+		<p style="max-width:720px"><?php esc_html_e( 'Where the Shop menu link and the old shop addresses (/shop/, /cart/, /checkout/, /product/...) send people. Buttons already saved in page content keep the address they were saved with.', 'hopfly' ); ?></p>
 		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
-			<input type="hidden" name="action" value="hopfly_examples">
-			<?php wp_nonce_field( 'hopfly_examples' ); ?>
-			<?php submit_button( __( 'Add example products', 'hopfly' ), 'secondary' ); ?>
+			<input type="hidden" name="action" value="hopfly_store_url">
+			<?php wp_nonce_field( 'hopfly_store_url' ); ?>
+			<input type="url" name="hopfly_store_url" value="<?php echo esc_attr( store_url() ); ?>" class="regular-text">
+			<?php submit_button( __( 'Save store URL', 'hopfly' ), 'secondary', 'submit', false ); ?>
 		</form>
 	</div>
 	<?php

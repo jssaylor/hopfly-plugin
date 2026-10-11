@@ -1,6 +1,6 @@
 # HopFly plugin
 
-Content that has to survive a theme change: sponsors, events, the slideshow block, and the shop/forms glue.
+Content that has to survive a theme change: sponsors, events, the slideshow block, and the store-link/forms glue.
 Written for WordPress 7.1, PHP 8.1. No build step (plain JavaScript). **Test after every WordPress update.**
 
 ## Sponsors
@@ -28,14 +28,12 @@ Written for WordPress 7.1, PHP 8.1. No build step (plain JavaScript). **Test aft
 Core Image blocks inside. Square crop, swipe (scroll-snap), arrows, keyboard arrows, position indicator, no autoplay.
 Each image has a *Crop focus* control (focal point) so vertical photos keep heads in view. Give every image alt text.
 
-## Shop
-- Raises WooCommerce's variation AJAX threshold to 250 (kits have 196 variations).
-- **Pre-order products.** In a product's *General* tab: tick *HopFly pre-order*, set *Window closes*, *Ships in about (weeks)* and an optional *Size chart link*.
-  The product page then shows the Pre-order badge, the dark "Pre-order window" card and the final-sale line; the button reads "Pre-order".
-  After the window-close date the product can no longer be bought and the card says the window has closed.
-  Blocks: `hopfly/product-preorder` (part: badge, notice, final-sale, size-chart) and `hopfly/product-gallery` (the product's photos in the slideshow).
-- **Quantity stepper:** the product page's quantity box gets − and + buttons (plain number input without JavaScript).
-- **Crop focus:** each media-library photo has a *Crop focus* field (x,y in percent). The slideshow and product gallery keep that point in view when a photo is cropped to a square.
+## Store (off-site)
+The store lives at **hopflycycling.org**. WooCommerce is not used on this site.
+- **One address:** the `hopfly_store_url` option (default `https://hopflycycling.org`), edited under **Tools > HopFly Setup > Store URL**. PHP reads it with `HopFly\Plugin\store_url()` (plugin) or `HopFly\Theme\store_url()` (theme).
+- **Where the address is used:** the *Shop* item in the desktop and mobile menus (opens in a new tab), the Shop card on the Home page (heading and both tile images), and the 301 redirects below. Buttons you add in the editor keep the address they were saved with, so update those by hand if the store moves.
+- **Redirects (301 to the store):** `/shop/`, `/cart/`, `/checkout/`, `/my-account/`, `/product/...`, `/product-category/...`, `/refund_returns/`. See `includes/store.php`.
+- **Crop focus:** each media-library photo has a *Crop focus* field (x,y in percent). The slideshow keeps that point in view when the photo is cropped to a square.
 
 ## Images
 JPEG uploads are converted to WebP (quality 80); originals are capped at 2000px; full-width hero images declare `sizes="100vw"`.
