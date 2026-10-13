@@ -160,38 +160,58 @@ function render_event_details( array $attrs, string $content, \WP_Block $block )
 	$map    = map_link( $event );
 	$past   = ! $event['recurring'] && is_past( $event );
 
+	$part = $attrs['part'] ?? 'aside';
+	$when = trim( format_event_dates( $event ) . ( $time ? ' · ' . $time : '' ) );
+	$venue_line = trim( $event['venue'] . ( $event['venue'] && $event['address'] ? ', ' : '' ) . $event['address'] );
+
+	// Hero pieces: type + status badges, and the "when" line under the title.
+	if ( 'badges' === $part ) {
+		$terms = get_the_terms( $post_id, 'hopfly_event_type' );
+		$type  = $terms && ! is_wp_error( $terms ) ? $terms[0]->name : '';
+		$out   = '';
+		if ( $type ) {
+			$out .= '<span class="hopfly-event-badge">' . esc_html( $type ) . '</span>';
+		}
+		if ( 'scheduled' !== $status ) {
+			$out .= '<span class="hopfly-event-badge is-' . esc_attr( $status ) . '">' . esc_html( 'canceled' === $status ? __( 'Canceled', 'hopfly' ) : __( 'Postponed', 'hopfly' ) ) . '</span>';
+		}
+		return $out ? '<p ' . get_block_wrapper_attributes( array( 'class' => 'hopfly-event-badges' ) ) . '>' . $out . '</p>' : '';
+	}
+	if ( 'when' === $part ) {
+		return $when ? '<p ' . get_block_wrapper_attributes( array( 'class' => 'hopfly-event-when' ) ) . '>' . esc_html( $when ) . '</p>' : '';
+	}
+	// Canceled or postponed: a notice above the photo.
+	if ( 'status' === $part ) {
+		if ( 'scheduled' === $status ) {
+			return '';
+		}
+		$note = $event['note'] ?: ( 'canceled' === $status ? __( 'This event has been canceled.', 'hopfly' ) : __( 'This event has been postponed.', 'hopfly' ) );
+		return '<div ' . get_block_wrapper_attributes( array( 'class' => 'hopfly-event-notice', 'role' => 'status' ) ) . '><span aria-hidden="true">!</span><p>' . esc_html( $note ) . '</p></div>';
+	}
+
+	// Aside: dark card with the facts and the registration button.
 	ob_start();
 	?>
-	<div <?php echo get_block_wrapper_attributes( array( 'class' => 'hopfly-event-details' ) ); // phpcs:ignore WordPress.Security.EscapeOutput ?>>
-		<?php if ( 'scheduled' !== $status ) : ?>
-			<p class="hopfly-event-details__status"><span class="hopfly-event__status is-<?php echo esc_attr( $status ); ?>"><?php echo esc_html( 'canceled' === $status ? __( 'Canceled', 'hopfly' ) : __( 'Postponed', 'hopfly' ) ); ?></span>
-			<?php echo $event['note'] ? esc_html( $event['note'] ) : ''; ?></p>
+	<aside <?php echo get_block_wrapper_attributes( array( 'class' => 'hopfly-event-details' ) ); // phpcs:ignore WordPress.Security.EscapeOutput ?>>
+		<?php if ( format_event_dates( $event ) ) : ?>
+			<div class="hopfly-event-details__fact"><span class="hopfly-event-details__k"><?php esc_html_e( 'Date', 'hopfly' ); ?></span><span class="hopfly-event-details__v"><?php echo esc_html( format_event_dates( $event ) ); ?></span></div>
 		<?php endif; ?>
-		<dl class="hopfly-event-details__list">
-			<?php if ( format_event_dates( $event ) ) : ?>
-				<dt><?php esc_html_e( 'Date', 'hopfly' ); ?></dt>
-				<dd><?php echo esc_html( format_event_dates( $event ) ); ?></dd>
-			<?php endif; ?>
-			<?php if ( $time ) : ?>
-				<dt><?php esc_html_e( 'Time', 'hopfly' ); ?></dt>
-				<dd><?php echo esc_html( $time ); ?></dd>
-			<?php endif; ?>
-			<?php if ( $event['venue'] || $event['address'] ) : ?>
-				<dt><?php esc_html_e( 'Where', 'hopfly' ); ?></dt>
-				<dd>
-					<?php echo esc_html( trim( $event['venue'] . ( $event['venue'] && $event['address'] ? ', ' : '' ) . $event['address'] ) ); ?>
-					<?php if ( $map ) : ?>
-						<br><a href="<?php echo esc_url( $map ); ?>" target="_blank" rel="noreferrer noopener"><?php esc_html_e( 'View on map (opens in a new tab)', 'hopfly' ); ?></a>
-					<?php endif; ?>
-				</dd>
-			<?php endif; ?>
-		</dl>
+		<?php if ( $time ) : ?>
+			<div class="hopfly-event-details__fact"><span class="hopfly-event-details__k"><?php esc_html_e( 'Time', 'hopfly' ); ?></span><span class="hopfly-event-details__v"><?php echo esc_html( $time ); ?></span></div>
+		<?php endif; ?>
+		<?php if ( $venue_line ) : ?>
+			<div class="hopfly-event-details__fact"><span class="hopfly-event-details__k"><?php esc_html_e( 'Venue', 'hopfly' ); ?></span><span class="hopfly-event-details__v"><?php echo esc_html( $venue_line ); ?></span>
+				<?php if ( $map ) : ?>
+					<a class="hopfly-event-details__map" href="<?php echo esc_url( $map ); ?>" target="_blank" rel="noreferrer noopener"><?php esc_html_e( 'View on map (opens in a new tab)', 'hopfly' ); ?></a>
+				<?php endif; ?>
+			</div>
+		<?php endif; ?>
 		<?php if ( $event['reg_url'] && 'scheduled' === $status && ! $past ) : ?>
-			<p class="hopfly-event-details__cta"><a class="hopfly-event__cta is-primary" href="<?php echo esc_url( $event['reg_url'] ); ?>" target="_blank" rel="noreferrer noopener"><?php echo esc_html( $event['reg_label'] ?: __( 'Register', 'hopfly' ) ); ?></a></p>
+			<a class="hopfly-event-details__cta" href="<?php echo esc_url( $event['reg_url'] ); ?>" target="_blank" rel="noreferrer noopener"><?php echo esc_html( $event['reg_label'] ?: __( 'Register', 'hopfly' ) ); ?></a>
 		<?php elseif ( $event['reg_url'] ) : ?>
-			<p class="hopfly-event-details__cta"><span class="hopfly-event__cta is-disabled" aria-disabled="true"><?php esc_html_e( 'Registration closed', 'hopfly' ); ?></span></p>
+			<span class="hopfly-event-details__cta is-disabled" aria-disabled="true"><?php esc_html_e( 'Registration closed', 'hopfly' ); ?></span>
 		<?php endif; ?>
-	</div>
+	</aside>
 	<?php
 	return (string) ob_get_clean();
 }

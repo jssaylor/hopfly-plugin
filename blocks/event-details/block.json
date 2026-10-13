@@ -7,6 +7,7 @@
 	"icon": "location-alt",
 	"description": "Date, time, venue with map link, status and registration button for the current event.",
 	"textdomain": "hopfly",
+	"attributes": { "part": { "type": "string", "default": "aside" } },
 	"usesContext": [ "postId", "postType" ],
 	"supports": { "html": false },
 	"editorScript": "file:./edit.js"

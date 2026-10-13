@@ -33,6 +33,32 @@ add_action(
 );
 
 add_action(
+	'admin_post_hopfly_refresh_pages',
+	static function () {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You do not have permission to do this.', 'hopfly' ) );
+		}
+		check_admin_referer( 'hopfly_refresh_pages' );
+		$n = 0;
+		if ( function_exists( '\HopFly\Theme\page_set' ) && function_exists( '\HopFly\Theme\pattern_content' ) ) {
+			foreach ( \HopFly\Theme\page_set() as $path => $def ) {
+				$page = $def[2] ? get_page_by_path( $path ) : null;
+				if ( $page ) {
+					$new = \HopFly\Theme\pattern_content( $def[2] );
+					if ( $new !== $page->post_content ) {
+						wp_update_post( array( 'ID' => $page->ID, 'post_content' => $new ) );
+						++$n;
+					}
+				}
+			}
+		}
+		set_transient( 'hopfly_setup_result', array( 'team pages refreshed' => $n ), 60 );
+		wp_safe_redirect( admin_url( 'tools.php?page=hopfly-setup&done=1' ) );
+		exit;
+	}
+);
+
+add_action(
 	'admin_post_hopfly_setup',
 	static function () {
 		if ( ! current_user_can( 'manage_options' ) ) {
@@ -116,6 +142,14 @@ function render_setup_page(): void {
 			<input type="hidden" name="action" value="hopfly_setup">
 			<?php wp_nonce_field( 'hopfly_setup' ); ?>
 			<?php submit_button( __( 'Create anything that is missing', 'hopfly' ) ); ?>
+		</form>
+		<hr style="margin:28px 0;max-width:720px">
+		<h2><?php esc_html_e( 'Refresh team pages from the theme', 'hopfly' ); ?></h2>
+		<p style="max-width:720px"><?php esc_html_e( 'Team pages (Charity Teams and Race Teams, one page per team) keep the layout they were created with. After a theme update that changes the team page layout, this button rebuilds them from the theme. It replaces the content of those pages, so any text you edited on them is lost.', 'hopfly' ); ?></p>
+		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" onsubmit="return confirm('<?php echo esc_js( __( 'This replaces the content of every team page. Continue?', 'hopfly' ) ); ?>');">
+			<input type="hidden" name="action" value="hopfly_refresh_pages">
+			<?php wp_nonce_field( 'hopfly_refresh_pages' ); ?>
+			<?php submit_button( __( 'Refresh team pages', 'hopfly' ), 'secondary' ); ?>
 		</form>
 		<hr style="margin:28px 0;max-width:720px">
 		<h2><?php esc_html_e( 'Store URL', 'hopfly' ); ?></h2>
